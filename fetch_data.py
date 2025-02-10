@@ -12,7 +12,7 @@ STRAVA_CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
 STRAVA_CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
 GOOGLE_SHEETS_NAME = os.getenv("GOOGLE_SHEETS_NAME")
 # Decode credentials path from GitHub Actions
-CREDENTIALS_FILE = "cred/service-account.json"
+CREDENTIALS_FILE = "service-account.json"
 
 # Authenticate Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
