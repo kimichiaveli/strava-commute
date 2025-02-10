@@ -33,4 +33,5 @@ jobs:
           STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
           STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
           GOOGLE_SHEETS_NAME: ${{ secrets.GOOGLE_SHEETS_NAME }}
+          STRAVA_CLUB_ID: ${{ secrets.STRAVA_CLUB_ID }}
         run: python fetch_data.py
