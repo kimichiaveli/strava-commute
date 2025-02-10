@@ -120,6 +120,12 @@ def get_existing_data(sheet):
 
 # Append only new activities
 def append_new_activities(sheet, activities):
+    column_order = [
+    "activity_name", "athlete_name", "distance",
+    "moving_time", "elapsed_time", "total_elevation_gain",
+    "workout_type", "hour", "day", "date", "start_date_local"
+    ]
+    
     if not sheet or not activities:
         print("No valid Google Sheets connection or activities data. Skipping update.")
         return
@@ -158,16 +164,17 @@ def append_new_activities(sheet, activities):
         # **Merge athlete's name to avoid duplicate rows caused by number-only lastname
         new_df["athlete_name"] = new_df["athlete_firstname"] + " " + new_df["athlete_lastname"]
         new_df.drop(columns=["athlete", "athlete_firstname", "athlete_lastname"], inplace=True, errors="ignore")
+        new_df_clean = new_df[column_order]
 
         # If sheet is empty, insert all activities
         if existing_df.empty:
-            sheet.append_rows(new_df.values.tolist(), value_input_option="RAW")
+            sheet.append_rows(new_df_clean.values.tolist(), value_input_option="RAW")
             print("All activities added.")
             return
 
         # Filter out duplicates
         key_columns = ["athlete_name", "activity_name", "distance"]
-        merged_df = existing_df.merge(new_df, on=key_columns, how="outer", indicator=True)
+        merged_df = existing_df.merge(new_df_clean, on=key_columns, how="outer", indicator=True)
 
         # Replace original columns with new_df values (keep `_y`)
         for col in merged_df.columns:
@@ -176,7 +183,7 @@ def append_new_activities(sheet, activities):
                 merged_df[base_col] = merged_df.get(base_col + "_y", merged_df.get(base_col + "_x"))
                 merged_df.drop(columns=[col], inplace=True, errors="ignore")
 
-        new_entries = merged_df[merged_df["_merge"] == "right_only"].drop(columns=["_merge"])[existing_df.columns]
+        new_entries = merged_df[merged_df["_merge"] == "right_only"].drop(columns=["_merge"])[column_order]
 
         # Convert all values to JSON-friendly types
         new_entries = new_entries.astype(str)
