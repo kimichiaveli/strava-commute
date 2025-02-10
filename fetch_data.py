@@ -142,10 +142,11 @@ def append_new_activities(sheet, activities):
         new_df.fillna(0, inplace=True)  # Replace NaN values with 0
 
         # Add timestamps
-        new_df["start_date_local"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-        new_df["date"] = datetime.now().strftime("%Y-%m-%d")
-        new_df["day"] = datetime.now().weekday() + 1  # Monday = 1, Sunday = 7
-        new_df["hour"] = datetime.now().strftime("%H")
+        utc_plus7 = datetime.utcnow() + timedelta(hours=7) # Assume activity starts in utc+7
+        new_df["start_date_local"] = utc_plus7.strftime("%Y-%m-%dT%H:%M:%SZ")
+        new_df["date"] = utc_plus7.strftime("%Y-%m-%d")
+        new_df["day"] = utc_plus7.weekday() + 1  # Monday = 1, Sunday = 7
+        new_df["hour"] = utc_plus7.strftime("%H")
 
         # Load existing data
         existing_df = get_existing_data(sheet)
