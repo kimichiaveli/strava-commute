@@ -7,17 +7,20 @@ import time
 from datetime import datetime
 
 # Strava API Credentials
-STRAVA_CLIENT_ID = "140601"
-STRAVA_CLIENT_SECRET = "fdfdfa731116c0808761787a82b07f2f18b78de1"
-STRAVA_REFRESH_TOKEN = "5ac1019a1d6748cabb237a248aae1d494c5f1558"
-TOKEN_FILE = "strava-commute/strava_token.json"  # Store the latest token here
+with open("secrets.json") as f:
+    secrets = json.load(f)
+
+STRAVA_CLIENT_ID = secrets["STRAVA_CLIENT_ID"]
+STRAVA_CLIENT_SECRET = secrets["STRAVA_CLIENT_SECRET"]
+STRAVA_REFRESH_TOKEN = secrets["STRAVA_REFRESH_TOKEN"]
+TOKEN_FILE = secrets["TOKEN_FILE"]
 
 # Google Sheets Configuration
-GOOGLE_SHEETS_NAME = "commute_raw"
-CREDENTIALS_FILE = "cred/service-account.json"
+GOOGLE_SHEETS_NAME = secrets["GOOGLE_SHEETS_NAME"]
+CREDENTIALS_FILE = secrets["CREDENTIALS_FILE"]
 
 # Strava API URL
-CLUB_ID = "1118221"
+CLUB_ID = secrets["STRAVA_CLUB_ID"]
 STRAVA_URL = f"https://www.strava.com/api/v3/clubs/{CLUB_ID}/activities?per_page=100"
 
 # Function to refresh Strava access token
