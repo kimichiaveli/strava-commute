@@ -23,7 +23,7 @@ sheet = client.open(GOOGLE_SHEETS_NAME).worksheet("tokens")  # Use a separate sh
 print("Secrets loaded from environment variables.")
 
 # Strava API URL
-CLUB_ID = secrets["STRAVA_CLUB_ID"]
+CLUB_ID = os.getenv("STRAVA_CLUB_ID")
 STRAVA_URL = f"https://www.strava.com/api/v3/clubs/{CLUB_ID}/activities?per_page=100"
 
 # Function to refresh and store token
