@@ -19,7 +19,10 @@ jobs:
           python-version: "3.9"
 
       - name: Install Dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install --upgrade pip
+          pip install --upgrade numpy pandas
+          pip install -r requirements.txt
 
       - name: Decode Google Credentials
         shell: bash
