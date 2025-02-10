@@ -67,6 +67,8 @@ def get_access_token():
     try:
         # Fetch token from Google Sheets
         token_data = sheet.get("A2")[0]
+        print(f"🔍 Debug: Raw token data from Google Sheets: {token_data}")  # Debugging
+        
         access_token, refresh_token, expires_at = token_data
         expires_at = int(expires_at)
 
