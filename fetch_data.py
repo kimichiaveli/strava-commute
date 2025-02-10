@@ -1,3 +1,4 @@
+import os
 import requests
 import pandas as pd
 import gspread
@@ -6,70 +7,77 @@ import json
 import time
 from datetime import datetime
 
-# Strava API Credentials
-with open("secrets.json") as f:
-    secrets = json.load(f)
+# Load secrets from environment variables
+STRAVA_CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
+STRAVA_CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
+GOOGLE_SHEETS_NAME = os.getenv("GOOGLE_SHEETS_NAME")
+CREDENTIALS_FILE = os.getenv("CREDENTIALS_FILE")
 
-STRAVA_CLIENT_ID = secrets["STRAVA_CLIENT_ID"]
-STRAVA_CLIENT_SECRET = secrets["STRAVA_CLIENT_SECRET"]
-STRAVA_REFRESH_TOKEN = secrets["STRAVA_REFRESH_TOKEN"]
-TOKEN_FILE = secrets["TOKEN_FILE"]
+# Authenticate Google Sheets
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE, scope)
+client = gspread.authorize(creds)
+sheet = client.open(GOOGLE_SHEETS_NAME).worksheet("tokens")  # Use a separate sheet for tokens
 
-# Google Sheets Configuration
-GOOGLE_SHEETS_NAME = secrets["GOOGLE_SHEETS_NAME"]
-CREDENTIALS_FILE = secrets["CREDENTIALS_FILE"]
+print("Secrets loaded from environment variables.")
 
 # Strava API URL
 CLUB_ID = secrets["STRAVA_CLUB_ID"]
 STRAVA_URL = f"https://www.strava.com/api/v3/clubs/{CLUB_ID}/activities?per_page=100"
 
-# Function to refresh Strava access token
+# Function to refresh and store token
 def refresh_access_token():
-    token_data = {
-        "client_id": STRAVA_CLIENT_ID,
-        "client_secret": STRAVA_CLIENT_SECRET,
-        "refresh_token": STRAVA_REFRESH_TOKEN,
-        "grant_type": "refresh_token",
-    }
     try:
-        response = requests.post("https://www.strava.com/oauth/token", data=token_data, timeout=10)
-        response.raise_for_status()
-        new_tokens = response.json()
+        # Read current refresh token from Google Sheets
+        token_data = sheet.get("A2")[0]
+        current_refresh_token = token_data[1]  # Column B stores refresh_token
 
-        # Save new tokens
-        with open(TOKEN_FILE, "w") as f:
-            json.dump({
-                "access_token": new_tokens.get("access_token"),
-                "refresh_token": new_tokens.get("refresh_token"),
-                "expires_at": new_tokens.get("expires_at")
-            }, f)
+        # Request new tokens from Strava
+        token_data = {
+            "client_id": STRAVA_CLIENT_ID,
+            "client_secret": STRAVA_CLIENT_SECRET,
+            "refresh_token": current_refresh_token,
+            "grant_type": "refresh_token",
+        }
+        response = requests.post("https://www.strava.com/oauth/token", data=token_data)
 
-        return new_tokens.get("access_token")
-    except requests.RequestException as e:
-        print(f"Error refreshing Strava token: {e}")
+        if response.status_code == 200:
+            new_tokens = response.json()
+            access_token = new_tokens["access_token"]
+            refresh_token = new_tokens["refresh_token"]  # Might be new
+            expires_at = new_tokens["expires_at"]
+
+            # **Store new tokens in Google Sheets**
+            sheet.update("A1", [["access_token", "refresh_token", "expires_at"]])
+            sheet.update("A2", [[access_token, refresh_token, expires_at]])
+
+            print("Token refreshed successfully!")
+            return access_token
+        else:
+            print(f"Failed to refresh token: {response.text}")
+            return None
+
+    except Exception as e:
+        print(f"Error refreshing token: {e}")
         return None
 
-# Get valid access token (refresh if needed)
+# Function to get access token
 def get_access_token():
     try:
-        with open(TOKEN_FILE, "r") as f:
-            tokens = json.load(f)
+        # Fetch token from Google Sheets
+        token_data = sheet.get("A2")[0]
+        access_token, refresh_token, expires_at = token_data
+        expires_at = int(expires_at)
 
-        access_token = tokens.get("access_token")
-        expires_at = tokens.get("expires_at")
-
-        if not access_token or not expires_at:
-            print("Invalid token file. Refreshing token...")
-            return refresh_access_token()
-
-        if time.time() >= expires_at:
+        # Refresh token if expired
+        if int(time.time()) >= expires_at:
             print("Access token expired. Refreshing...")
             return refresh_access_token()
-
+        
         return access_token
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        print(f"Token file missing or corrupted: {e}. Refreshing token...")
-        return refresh_access_token()
+    except Exception as e:
+        print(f"Error retrieving token from Google Sheets: {e}")
+        return refresh_access_token()  # Refresh if the sheet is empty
 
 # Fetch club activities from Strava API
 def fetch_strava_activities():
