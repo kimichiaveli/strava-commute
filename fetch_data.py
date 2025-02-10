@@ -30,7 +30,7 @@ STRAVA_URL = f"https://www.strava.com/api/v3/clubs/{CLUB_ID}/activities?per_page
 def refresh_access_token():
     try:
         # Read current refresh token from Google Sheets
-        token_data = sheet.get("A2")[0]
+        token_data = sheet.get("A2:C2")[0]
         current_refresh_token = token_data[1]  # Column B stores refresh_token
 
         # Request new tokens from Strava
@@ -66,7 +66,7 @@ def refresh_access_token():
 def get_access_token():
     try:
         # Fetch token from Google Sheets
-        token_data = sheet.get("A2")[0]
+        token_data = sheet.get("A2:C2")[0]
         print(f"🔍 Debug: Raw token data from Google Sheets: {token_data}")  # Debugging
         
         access_token, refresh_token, expires_at = token_data
