@@ -23,7 +23,7 @@ jobs:
 
       - name: Decode Google Credentials
         shell: bash
-        run: echo "${{ secrets.GCP_CREDENTIALS }}" | base64 --decode > cred/service-account.json
+        run: echo "${{ secrets.GCP_CREDENTIALS }}" | base64 --decode > service-account.json
 
       - name: Run Strava Fetcher Script
         env:
