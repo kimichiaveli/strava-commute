@@ -5,7 +5,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import json
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Load secrets from environment variables
 STRAVA_CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
