@@ -67,7 +67,6 @@ def get_access_token():
     try:
         # Fetch token from Google Sheets
         token_data = sheet.get("A2:C2")[0]
-        print(f"🔍 Debug: Raw token data from Google Sheets: {token_data}")  # Debugging
         
         access_token, refresh_token, expires_at = token_data
         expires_at = int(expires_at)
@@ -89,6 +88,7 @@ def fetch_strava_activities():
         print("Failed to obtain a valid access token. Exiting...")
         return []
 
+    print(f"🔍 Debug: CLUB_ID={CLUB_ID}, Access Token={access_token[:6]}...")  # Partial token for security
     headers = {"Authorization": f"Bearer {access_token}"}
     try:
         response = requests.get(STRAVA_URL, headers=headers, timeout=10)
