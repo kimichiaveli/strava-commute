@@ -151,7 +151,10 @@ def append_new_activities(sheet, activities):
         utc_plus7 = datetime.utcnow() + timedelta(hours=7) # Assume activity starts in utc+7
         new_df["record_date"] = utc_plus7.strftime("%Y-%m-%dT%H:%M:%SZ")
         new_df["record_date"] = pd.to_datetime(new_df["record_date"])
-        new_df["start_date_local"] = (new_df["record_date"] - pd.to_timedelta(new_df["elapsed_time"], unit="s")).dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+        # Compute `start_date_local` by subtracting `elapsed_time`
+        new_df["start_date_local"] = new_df["record_date"] - pd.to_timedelta(new_df["elapsed_time"], unit="s")
+        # **Ensure `start_date_local` is in datetime format** before using `.dt`
+        new_df["start_date_local"] = pd.to_datetime(new_df["start_date_local"])
         new_df["date"] = new_df["start_date_local"].dt.strftime("%Y-%m-%d")  # Extract date (YYYY-MM-DD)
         new_df["day"] = new_df["start_date_local"].dt.weekday + 1  # Monday = 1, Sunday = 7
         new_df["hour"] = new_df["start_date_local"].dt.strftime("%H")  # Extract hour (HH)
