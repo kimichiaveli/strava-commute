@@ -148,17 +148,16 @@ def append_new_activities(sheet, activities):
         new_df.fillna(0, inplace=True)  # Replace NaN values with 0
 
         # Add timestamps
-        utc_plus7 = datetime.utcnow() + timedelta(hours=7) # Assume activity starts in utc+7
-        new_df["record_date"] = utc_plus7.strftime("%Y-%m-%dT%H:%M:%SZ")
-        new_df["record_date"] = pd.to_datetime(new_df["record_date"])
+        utc_plus7 = datetime.utcnow().replace(tzinfo=pytz.utc).astimezone(pytz.timezone("Asia/Jakarta"))
+        new_df["record_date"] = pd.to_datetime(utc_plus7.strftime("%Y-%m-%dT%H:%M:%S"))  # Store as datetime, not string
         # Compute `start_date_local` by subtracting `elapsed_time`
         new_df["start_date_local"] = new_df["record_date"] - pd.to_timedelta(new_df["elapsed_time"], unit="s")
-        # **Ensure `start_date_local` is in datetime format** before using `.dt`
-        new_df["start_date_local"] = pd.to_datetime(new_df["start_date_local"])
+        # Ensure `start_date_local` has timezone awareness
+        new_df["start_date_local"] = new_df["start_date_local"].dt.tz_localize("Asia/Jakarta", ambiguous="NaT")
         new_df["date"] = new_df["start_date_local"].dt.strftime("%Y-%m-%d")  # Extract date (YYYY-MM-DD)
         new_df["day"] = new_df["start_date_local"].dt.weekday + 1  # Monday = 1, Sunday = 7
         new_df["hour"] = new_df["start_date_local"].dt.strftime("%H")  # Extract hour (HH)
-        new_df["start_date_local"] = new_df["start_date_local"].dt.strftime("%Y-%m-%dT%H:%M:%SZ") # Format `start_date_local` as ISO 8601 for consistency
+        new_df["start_date_local"] = new_df["start_date_local"].dt.strftime("%Y-%m-%dT%H:%M:%S+07:00")  # Keep timezone info
 
         # Load existing data
         existing_df = get_existing_data(sheet)
