@@ -123,7 +123,7 @@ def append_new_activities(sheet, activities):
     column_order = [
     "activity_name", "athlete_name", "distance",
     "moving_time", "elapsed_time", "total_elevation_gain",
-    "workout_type", "hour", "day", "date", "start_date_local"
+    "workout_type", "hour", "day", "date", "start_date_local","record_date"
     ]
     
     if not sheet or not activities:
@@ -149,10 +149,13 @@ def append_new_activities(sheet, activities):
 
         # Add timestamps
         utc_plus7 = datetime.utcnow() + timedelta(hours=7) # Assume activity starts in utc+7
-        new_df["start_date_local"] = utc_plus7.strftime("%Y-%m-%dT%H:%M:%SZ")
-        new_df["date"] = utc_plus7.strftime("%Y-%m-%d")
-        new_df["day"] = utc_plus7.weekday() + 1  # Monday = 1, Sunday = 7
-        new_df["hour"] = utc_plus7.strftime("%H")
+        new_df["record_date"] = utc_plus7.strftime("%Y-%m-%dT%H:%M:%SZ")
+        new_df["record_date"] = pd.to_datetime(new_df["record_date"])
+        new_df["start_date_local"] = (new_df["record_date"] - pd.to_timedelta(new_df["elapsed_time"], unit="s")).dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+        new_df["date"] = new_df["start_date_local"].dt.strftime("%Y-%m-%d")  # Extract date (YYYY-MM-DD)
+        new_df["day"] = new_df["start_date_local"].dt.weekday + 1  # Monday = 1, Sunday = 7
+        new_df["hour"] = new_df["start_date_local"].dt.strftime("%H")  # Extract hour (HH)
+        new_df["start_date_local"] = new_df["start_date_local"].dt.strftime("%Y-%m-%dT%H:%M:%SZ") # Format `start_date_local` as ISO 8601 for consistency
 
         # Load existing data
         existing_df = get_existing_data(sheet)
