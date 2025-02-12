@@ -22,13 +22,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip  # Upgrade pip
           pip install --no-cache-dir --force-reinstall -r requirements.txt  # Ensure fresh install
-
-      - name: Decode Google Credentials
-        shell: bash
-        run: echo "${{ secrets.GCP_CREDENTIALS }}" | base64 --decode > service-account.json
         
       - name: Run Prediction Script
         env:
           GOOGLE_SHEETS_NAME: ${{ secrets.GOOGLE_SHEETS_NAME }}
           GOOGLE_SHEETS_CLEAN: ${{ secrets.GOOGLE_SHEETS_CLEAN }}
+          GCP_CREDENTIALS_JSON: ${{ secrets.GCP_CREDENTIALS_JSON }}
         run: python predict.py
