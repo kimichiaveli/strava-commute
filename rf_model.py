@@ -19,25 +19,31 @@ import joblib
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # Load secrets from secrets.json
-with open("strava-commute/secrets.json", "r") as file:
+with open("secrets.json", "r") as file:
     secrets = json.load(file)
 
 GOOGLE_SHEETS_MODEL = secrets["GOOGLE_SHEETS_MODEL"]
 CREDENTIALS_FILE = secrets["CREDENTIALS_FILE"]
 
-# List of commute-related words
-COMMUTE_KEYWORDS = [
-    "commute", "b2w", "bike2work", "work", "office", "kantor", "kerja", "ngantor",
-    "b2h", "bike2home", "pulang", "rumah", "balik",
-    "transport", "pergi", "makan", "jajan"
-]
+def load_commute_keywords(filepath="commute.txt"):
+    """Reads commute-related keywords from a text file."""
+    try:
+        with open(filepath, "r", encoding="utf-8") as file:
+            keywords = [line.strip() for line in file.readlines() if line.strip()]
+        return keywords
+    except FileNotFoundError:
+        print(f"Error: {filepath} not found.")
+        return []
+
+# Load commute-related keywords from file
+COMMUTE_KEYWORDS = load_commute_keywords()
 
 # Authenticate and Read Data from Google Sheets
 def read_google_sheet(sheet_name):
     """Reads data from Google Sheets and returns it as a Pandas DataFrame."""
     try:
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        creds = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE, scope)
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(CREDENTIALS_FILE, scope)
         client = gspread.authorize(creds)
         sheet = client.open(sheet_name).sheet1
         data = sheet.get_all_records()
@@ -65,7 +71,7 @@ def preprocess_text_features(df):
     max_sim_scores = cosine_sim.max(axis=1)
 
     # Convert to binary feature
-    df["commute_keyword"] = (max_sim_scores >= 0.7).astype(int)
+    df["commute_keyword"] = (max_sim_scores >= 0.5).astype(int)
     logging.info("Text features processed with TF-IDF and cosine similarity.")
 
     return df, tfidf_vectorizer
@@ -132,9 +138,9 @@ logging.info(f"Model Accuracy: {accuracy:.4f}")
 logging.info("\n" + classification_report(y_test, y_pred))
 
 # Save Model & Preprocessing Tools
-joblib.dump(rf_model, "random_forest_model.pkl")
-joblib.dump(tfidf_vectorizer, "tfidf_vectorizer.pkl")
-joblib.dump(scaler, "scaler.pkl")
-joblib.dump(label_encoders, "label_encoders.pkl")
+joblib.dump(rf_model, "model/random_forest_model.pkl")
+joblib.dump(tfidf_vectorizer, "model/tfidf_vectorizer.pkl")
+joblib.dump(scaler, "model/scaler.pkl")
+joblib.dump(label_encoders, "model/label_encoders.pkl")
 
 logging.info("Model training complete! Model saved.")
