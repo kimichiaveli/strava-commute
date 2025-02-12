@@ -25,7 +25,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 # Load secrets for production
 GOOGLE_SHEETS_NAME = os.getenv("GOOGLE_SHEETS_NAME")
 GOOGLE_SHEETS_CLEAN = os.getenv("GOOGLE_SHEETS_CLEAN")
-CREDENTIALS_FILE = "service-account.json"
+CREDENTIALS_FILE = os.getenv("GCP_CREDENTIALS_JSON")
 if CREDENTIALS_FILE:
     creds_json = json.loads(CREDENTIALS_FILE)
 else:
