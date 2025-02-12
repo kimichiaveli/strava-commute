@@ -1,0 +1,33 @@
+name: Predict Commutes
+
+on:
+  schedule:
+    - cron: '0 */3 * * *'  # Runs every 3 hours (UTC)
+  workflow_dispatch:  # Allows manual execution
+
+jobs:
+  predict:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Decode Google Credentials
+        shell: bash
+        run: echo "${{ secrets.GCP_CREDENTIALS }}" | base64 --decode > service-account.json
+        
+      - name: Run Prediction Script
+        env:
+          GOOGLE_SHEETS_NAME: ${{ secrets.GOOGLE_SHEETS_NAME }}
+          GOOGLE_SHEETS_CLEAN: ${{ secrets.GOOGLE_SHEETS_CLEAN }}
+        run: python predict.py
