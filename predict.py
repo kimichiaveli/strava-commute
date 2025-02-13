@@ -107,6 +107,7 @@ def main():
     df_original = df.copy()    
     df_processed, X_new = preprocess_data(df)
     df_final = predict(df_original, X_new)
+    df_final['carbon_saving'] = df['distance'] * 0.18/1000
     save_to_google_sheets(df_final, GOOGLE_SHEETS_CLEAN)
     pred_time = time.time()
     pred_commute_time = pred_time - gsheet_time
@@ -116,52 +117,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# # Load new data
-# df_new = read_google_sheet(GOOGLE_SHEETS_NAME)
-
-# gsheet_time = time.time()
-# load_gsheet_time = gsheet_time - model_time
-# print(f"Loading data time: {load_gsheet_time:.4f} seconds")
-
-# # Preserve the original data
-# df_original = df_new.copy()
-
-# # Preprocess new data
-# df_new["commute_keyword"] = (cosine_similarity(tfidf_vectorizer.transform(df_new["activity_name"].fillna("")), tfidf_vectorizer.transform(["commute"])).max(axis=1) >= 0.7).astype(int)
-
-# # Apply label encoding to 'workout_type' for prediction
-# df_new["workout_type"] = label_encoders["workout_type"].transform(df_new["workout_type"].astype(str))
-
-# # Prepare feature matrix
-# X_new = np.hstack((
-#     scaler.transform(df_new[["distance", "moving_time", "elapsed_time", "total_elevation_gain", "hour", "day"]]),
-#     tfidf_vectorizer.transform(df_new["activity_name"].fillna("")).toarray(),
-#     df_new[["commute_keyword", "workout_type"]].values
-# ))
-
-# # Predict
-# df_original["is_commute"] = rf_model.predict(X_new)
-
-# # Save predictions back to Google Sheets
-# def save_to_google_sheets(df, sheet_name):
-#     try:
-#         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-#         creds = ServiceAccountCredentials.from_json_keyfile_dict(CREDENTIALS_FILE, scope)
-#         client = gspread.authorize(creds)
-#         sheet = client.open(sheet_name).sheet1
-
-#         sheet.clear()  # Clear existing content
-#         sheet.update([df.columns.values.tolist()] + df.values.tolist())  # Update with new data
-#         logging.info("Predictions successfully saved to Google Sheets.")
-#     except Exception as e:
-#         logging.error(f"Error saving to Google Sheets: {e}")
-#         raise
-
-# # Save Predictions to Google Sheets
-# save_to_google_sheets(df_original, GOOGLE_SHEETS_CLEAN)
-
-# pred_time = time.time()
-# pred_commute_time = pred_time - gsheet_time
-# print(f"Predicting commute time: {pred_commute_time:.4f} seconds")
-# print(f"Total runtime: {pred_time - start_time:.4f} seconds")
