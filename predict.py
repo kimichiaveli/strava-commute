@@ -14,22 +14,22 @@ start_time = time.time()
 # Setup Logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-# # Load secrets for local testing
-# with open("secrets.json", "r") as file:
-#     secrets = json.load(file)
+# Load secrets for local testing
+with open("secrets.json", "r") as file:
+    secrets = json.load(file)
 
-# GOOGLE_SHEETS_NAME = secrets["GOOGLE_SHEETS_NAME"]
-# GOOGLE_SHEETS_CLEAN = secrets["GOOGLE_SHEETS_CLEAN"]
-# creds_json = secrets["CREDENTIALS_FILE"]
+GOOGLE_SHEETS_NAME = secrets["GOOGLE_SHEETS_NAME"]
+GOOGLE_SHEETS_CLEAN = secrets["GOOGLE_SHEETS_CLEAN"]
+creds_json = secrets["CREDENTIALS_FILE"]
 
-# Load secrets for production
-GOOGLE_SHEETS_NAME = os.getenv("GOOGLE_SHEETS_NAME")
-GOOGLE_SHEETS_CLEAN = os.getenv("GOOGLE_SHEETS_CLEAN")
-CREDENTIALS_FILE = os.getenv("GCP_CREDENTIALS_JSON")
-if CREDENTIALS_FILE:
-    creds_json = json.loads(CREDENTIALS_FILE)
-else:
-    raise ValueError("Missing Google Sheets API credentials. Set GCP_CREDENTIALS as a GitHub Secret.")
+# # Load secrets for production
+# GOOGLE_SHEETS_NAME = os.getenv("GOOGLE_SHEETS_NAME")
+# GOOGLE_SHEETS_CLEAN = os.getenv("GOOGLE_SHEETS_CLEAN")
+# CREDENTIALS_FILE = os.getenv("GCP_CREDENTIALS_JSON")
+# if CREDENTIALS_FILE:
+#     creds_json = json.loads(CREDENTIALS_FILE)
+# else:
+#     raise ValueError("Missing Google Sheets API credentials. Set GCP_CREDENTIALS as a GitHub Secret.")
 
 cred_time = time.time()
 load_cred_time = cred_time - start_time
@@ -66,17 +66,31 @@ def read_google_sheet(sheet_name):
 
 def preprocess_data(df):
     """Preprocesses input data for prediction."""
+    df['activity_name'] = df['activity_name'].astype(str)
+
     df["commute_keyword"] = (cosine_similarity(
         tfidf_vectorizer.transform(df["activity_name"].fillna("")),
         tfidf_vectorizer.transform(["commute"])
     ).max(axis=1) >= 0.7).astype(int)
 
-    df["workout_type_encoded"] = label_encoders["workout_type"].transform(df["workout_type"].astype(str))
+    # Ensure all new values exist in the trained label encoder
+    df["workout_type"] = df["workout_type"].astype(str)
+
+    # Use .get() to map unknown labels to a default (-1)
+    df["workout_type_encoded"] = df["workout_type"].map(lambda x: label_encoders["workout_type"].transform([x])[0] 
+                                                        if x in label_encoders["workout_type"].classes_ 
+                                                        else -1)
+
+    # Median distance feature engineering
+    df["estimated_commute_distance"] = df.groupby("athlete_name")["distance"].transform("median")
+    threshold = 0.2  
+    df["commute_distance_flag"] = ((df["distance"] >= df["estimated_commute_distance"] * (1 - threshold)) &
+                                (df["distance"] <= df["estimated_commute_distance"] * (1 + threshold))).astype(int)
 
     X = np.hstack((
         scaler.transform(df[["distance", "moving_time", "elapsed_time", "total_elevation_gain", "hour", "day"]]),
         tfidf_vectorizer.transform(df["activity_name"].fillna("")).toarray(),
-        df[["commute_keyword", "workout_type_encoded"]].values
+        df[["commute_keyword", "workout_type_encoded", "commute_distance_flag"]].values
     ))
 
     return df, X

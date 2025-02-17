@@ -101,12 +101,18 @@ df, tfidf_vectorizer = preprocess_text_features(df)
 # Encode categorical features
 df, label_encoders = encode_categorical_features(df)
 
+# Median distance feature engineering
+df["estimated_commute_distance"] = df.groupby("athlete_name")["distance"].transform("median")
+threshold = 0.2  
+df["commute_distance_flag"] = ((df["distance"] >= df["estimated_commute_distance"] * (1 - threshold)) &
+                               (df["distance"] <= df["estimated_commute_distance"] * (1 + threshold))).astype(int)
+
 # Normalize numerical features
 numerical_cols = ["distance", "moving_time", "elapsed_time", "total_elevation_gain", "hour", "day"]
 X_num_scaled, scaler = normalize_numerical_features(df, numerical_cols)
 
 # Extract categorical & binary features
-X_other = df[["commute_keyword", "workout_type"]].values
+X_other = df[["commute_keyword", "workout_type", "commute_distance_flag"]].values
 
 # Vectorize Activity Name Using TF-IDF
 activity_name_tfidf = tfidf_vectorizer.transform(df["activity_name"].fillna("")).toarray()
