@@ -14,22 +14,22 @@ start_time = time.time()
 # Setup Logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-# Load secrets for local testing
-with open("secrets.json", "r") as file:
-    secrets = json.load(file)
+# # Load secrets for local testing
+# with open("secrets.json", "r") as file:
+#     secrets = json.load(file)
 
-GOOGLE_SHEETS_NAME = secrets["GOOGLE_SHEETS_NAME"]
-GOOGLE_SHEETS_CLEAN = secrets["GOOGLE_SHEETS_CLEAN"]
-creds_json = secrets["CREDENTIALS_FILE"]
+# GOOGLE_SHEETS_NAME = secrets["GOOGLE_SHEETS_NAME"]
+# GOOGLE_SHEETS_CLEAN = secrets["GOOGLE_SHEETS_CLEAN"]
+# creds_json = secrets["CREDENTIALS_FILE"]
 
-# # Load secrets for production
-# GOOGLE_SHEETS_NAME = os.getenv("GOOGLE_SHEETS_NAME")
-# GOOGLE_SHEETS_CLEAN = os.getenv("GOOGLE_SHEETS_CLEAN")
-# CREDENTIALS_FILE = os.getenv("GCP_CREDENTIALS_JSON")
-# if CREDENTIALS_FILE:
-#     creds_json = json.loads(CREDENTIALS_FILE)
-# else:
-#     raise ValueError("Missing Google Sheets API credentials. Set GCP_CREDENTIALS as a GitHub Secret.")
+# Load secrets for production
+GOOGLE_SHEETS_NAME = os.getenv("GOOGLE_SHEETS_NAME")
+GOOGLE_SHEETS_CLEAN = os.getenv("GOOGLE_SHEETS_CLEAN")
+CREDENTIALS_FILE = os.getenv("GCP_CREDENTIALS_JSON")
+if CREDENTIALS_FILE:
+    creds_json = json.loads(CREDENTIALS_FILE)
+else:
+    raise ValueError("Missing Google Sheets API credentials. Set GCP_CREDENTIALS as a GitHub Secret.")
 
 cred_time = time.time()
 load_cred_time = cred_time - start_time
