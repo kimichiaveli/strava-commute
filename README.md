@@ -40,6 +40,31 @@ Transforming raw data into actionable insights through interactive dashboards:
   - 🌍 Carbon savings and sustainability impact
   - 📈 Commuter behavior insights
 
+## End-to-End Pipeline 🔄
+This section provides a step-by-step breakdown of how the Strava Commute Project processes data from start to finish:
+
+1. **Data Extraction** 🛠️
+   - Fetches cycling activity data via the Strava API from a club.
+   - Retrieves details such as activity type, timestamp, and user metadata (excluding location data).
+   - Data extraction is done for every 5 minute.
+
+2. **Transformation & Processing** 🔍
+   - Cleans and preprocesses raw data by handling missing values and structuring records.
+   - Aggregates commute-related activities based on predefined filtering criteria.
+   - Enhances dataset with computed fields, such as estimated carbon savings.
+
+3. **Machine Learning Classification** 🤖
+   - Runs classification models (Random Forest/Decision Tree) to predict if an activity is a commute.
+   - Stores results in Google Sheets for further validation and analysis.
+
+4. **Storage & Automation** 📂
+   - Saves processed data in Google Sheets for easy access and integration.
+   - Automates the entire workflow using GitHub Actions (current) and plans migration to Google Cloud Functions for better scalability.
+
+5. **Data Visualization & Reporting** 📈
+   - Uses Tableau and Looker Studio to generate interactive dashboards.
+   - Provides insights into cycling behaviors, carbon impact, and commute trends.
+
 ## Technologies & Tools 🔧
 
 - **Programming Languages**: Python, JavaScript
