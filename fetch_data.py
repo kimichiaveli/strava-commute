@@ -179,7 +179,7 @@ def append_new_activities(sheet, activities):
             return
 
         # Filter out duplicates
-        key_columns = ["athlete_name", "activity_name", "distance"]
+        key_columns = ["athlete_name", "distance", "moving_time", "elapsed_time", "total_elevation_gain"]
         merged_df = existing_df.merge(new_df_clean, on=key_columns, how="outer", indicator=True)
 
         # Replace original columns with new_df values (keep `_y`)
