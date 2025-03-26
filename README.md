@@ -11,6 +11,10 @@ The Strava Commute Project is an innovative initiative designed to automate the 
 
 ## Project Components
 
+<div align="center">
+  <img src="flowchart b2w.png">
+</div>
+
 ### 1. **ETL Process** ⚙️
 
 A fully automated pipeline for data extraction, transformation, and storage:
