@@ -25,7 +25,7 @@ A fully automated pipeline for data extraction, transformation, and storage:
 Using AI to classify cycling commute activities:
 
 - **Algorithms**:
-  - Random Forest (Python deployment)
+  - Random Forest (_Python deployment, currently in use_)
   - Decision Tree (JavaScript deployment for web integration)
   - TensorFlow (planned as dataset grows)
 - **Training Dataset**: Currently <10k records, aiming for scalable expansion
